@@ -7,10 +7,10 @@
 <style>
 *{box-sizing:border-box}
 
-/* Chilles, pulzáló háttér animációval */
+/* Alap beállítások */
 body {
   margin: 0;
-  background-color: #0f0c1b;
+  background-color: #09090e;
   font-family: Arial, sans-serif;
   color: #fff;
   min-height: 100vh;
@@ -21,70 +21,100 @@ body {
   position: relative;
 }
 
-/* Hangulatos neon fényfoltok a háttérben */
-body::before, body::after {
-  content: '';
-  position: absolute;
-  width: 350px;
-  height: 350px;
-  border-radius: 50%;
-  filter: blur(80px);
+/* Teljes képernyős animált háttér konténer */
+.bg-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: -1;
-  opacity: 0.5;
-  animation: floatBubble 10s infinite alternate ease-in-out;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0c0c12, #171026, #09090e);
 }
 
-body::before {
+/* Lebegő, pulzáló színfoltok */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.55;
+  animation: moveBlob 16s infinite alternate ease-in-out;
+}
+
+.blob-1 {
+  width: 450px;
+  height: 450px;
   background: #ff3652;
-  top: 10%;
-  left: 15%;
+  top: -10%;
+  left: -10%;
+  animation-duration: 18s;
 }
 
-body::after {
+.blob-2 {
+  width: 550px;
+  height: 550px;
   background: #6c5ce7;
-  bottom: 10%;
-  right: 15%;
+  bottom: -15%;
+  right: -10%;
+  animation-duration: 22s;
   animation-delay: -5s;
 }
 
-@keyframes floatBubble {
+.blob-3 {
+  width: 350px;
+  height: 350px;
+  background: #00cec9;
+  top: 35%;
+  left: 50%;
+  animation-duration: 14s;
+  animation-delay: -3s;
+  opacity: 0.35;
+}
+
+/* Animáció a foltok mozgásához */
+@keyframes moveBlob {
   0% {
-    transform: translateY(0) scale(1);
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(100px, 70px) scale(1.2);
   }
   100% {
-    transform: translateY(40px) scale(1.15);
+    transform: translate(-70px, 110px) scale(0.85);
   }
 }
 
 .panel{
-  width:min(100%,540px);
-  background:rgba(23, 23, 32, 0.85);
-  backdrop-filter: blur(12px); /* Enyhén áttetsző, üveghatású panel */
-  border:1px solid rgba(255, 255, 255, 0.1);
-  padding:32px;
-  border-radius:22px;
-  box-shadow:0 20px 50px rgba(0, 0, 0, 0.5);
-  position:relative;
+  width: min(100%, 540px);
+  background: rgba(23, 23, 32, 0.8);
+  backdrop-filter: blur(16px); /* Elegáns üveghatás */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 32px;
+  border-radius: 22px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  position: relative;
+  z-index: 1;
 }
 
-/* Nyelvváltó gomb stílusa a panel jobb felső sarkában */
+/* Nyelvváltó gomb stílusa */
 .lang-btn{
-  position:absolute;
-  top:20px;
-  right:20px;
-  background:#22222d;
-  color:#fff;
-  border:1px solid #41414d;
-  padding:6px 12px;
-  border-radius:8px;
-  font-size:13px;
-  cursor:pointer;
-  font-weight:bold;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #22222d;
+  color: #fff;
+  border: 1px solid #41414d;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: bold;
   transition: all 0.2s;
 }
 .lang-btn:hover{
-  border-color:#ff425b;
-  background:#2a2a38;
+  border-color: #ff425b;
+  background: #2a2a38;
 }
 
 h1{margin:0 0 8px;font-size:29px}
@@ -105,6 +135,14 @@ input:focus,select:focus{outline:2px solid #ff425b}
 </style>
 </head>
 <body>
+
+<!-- Animált háttér elemek -->
+<div class="bg-animation">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
 <main class="panel">
   <!-- Nyelvváltó gomb -->
   <button id="lang-toggle" class="lang-btn" type="button">English</button>
@@ -227,4 +265,35 @@ input:focus,select:focus{outline:2px solid #ff425b}
     go.disabled = true;
     statusEl.textContent = translations[currentLang]['msg_downloading'];
     try {
-      let res =...
+      let res = await fetch('/download', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({url, kind, quality: q.value})
+      });
+      if (!res.ok) {
+        let data = await res.json();
+        throw Error(data.error || 'Ismeretlen hiba');
+      }
+      let blob = await res.blob();
+      let cd = res.headers.get('Content-Disposition') || '';
+      let match = cd.match(/filename\*=UTF-8''([^;]+)/i);
+      let basic = cd.match(/filename="?([^";]+)"?/i);
+      let name = match ? decodeURIComponent(match[1]) : basic ? basic[1] : 'download.' + (kind === 'audio' ? 'mp3' : 'mp4');
+      let link = document.createElement('a');
+      let objectUrl = URL.createObjectURL(blob);
+      link.href = objectUrl;
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 30000);
+      statusEl.textContent = translations[currentLang]['msg_success'];
+    } catch (e) {
+      statusEl.textContent = '❌ ' + e.message;
+    } finally {
+      go.disabled = false;
+    }
+  };
+</script>
+</body>
+</html>
