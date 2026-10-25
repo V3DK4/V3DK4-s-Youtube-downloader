@@ -6,21 +6,98 @@
 <title>YT Downloader</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:radial-gradient(circle at top,#28202b,#0c0c12 65%);font-family:Arial,sans-serif;color:#fff;min-height:100vh;display:grid;place-items:center;padding:20px}
-.panel{width:min(100%,540px);background:#171720;border:1px solid #33313b;padding:32px;border-radius:22px;box-shadow:0 20px 60px #0007;position:relative}
+
+/* Chilles, pulzáló háttér animációval */
+body {
+  margin: 0;
+  background-color: #0f0c1b;
+  font-family: Arial, sans-serif;
+  color: #fff;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Hangulatos neon fényfoltok a háttérben */
+body::before, body::after {
+  content: '';
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: -1;
+  opacity: 0.5;
+  animation: floatBubble 10s infinite alternate ease-in-out;
+}
+
+body::before {
+  background: #ff3652;
+  top: 10%;
+  left: 15%;
+}
+
+body::after {
+  background: #6c5ce7;
+  bottom: 10%;
+  right: 15%;
+  animation-delay: -5s;
+}
+
+@keyframes floatBubble {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(40px) scale(1.15);
+  }
+}
+
+.panel{
+  width:min(100%,540px);
+  background:rgba(23, 23, 32, 0.85);
+  backdrop-filter: blur(12px); /* Enyhén áttetsző, üveghatású panel */
+  border:1px solid rgba(255, 255, 255, 0.1);
+  padding:32px;
+  border-radius:22px;
+  box-shadow:0 20px 50px rgba(0, 0, 0, 0.5);
+  position:relative;
+}
+
 /* Nyelvváltó gomb stílusa a panel jobb felső sarkában */
-.lang-btn{position:absolute;top:20px;right:20px;background:#22222d;color:#fff;border:1px solid #41414d;padding:6px 12px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:bold}
-.lang-btn:hover{border-color:#ff425b}
+.lang-btn{
+  position:absolute;
+  top:20px;
+  right:20px;
+  background:#22222d;
+  color:#fff;
+  border:1px solid #41414d;
+  padding:6px 12px;
+  border-radius:8px;
+  font-size:13px;
+  cursor:pointer;
+  font-weight:bold;
+  transition: all 0.2s;
+}
+.lang-btn:hover{
+  border-color:#ff425b;
+  background:#2a2a38;
+}
+
 h1{margin:0 0 8px;font-size:29px}
 p{color:#aaaab5;line-height:1.5}
 label{display:block;font-size:14px;margin:25px 0 10px;font-weight:bold}
 input,select{width:100%;padding:15px;background:#22222d;color:#fff;border:1px solid #41414d;border-radius:11px;font-size:15px}
 input:focus,select:focus{outline:2px solid #ff425b}
 .modes{display:flex;gap:12px}
-.mode{flex:1;padding:19px 12px;border:1px solid #44404b;border-radius:12px;background:#22222d;color:#fff;cursor:pointer;text-align:left;font-size:16px}
+.mode{flex:1;padding:19px 12px;border:1px solid #44404b;border-radius:12px;background:#22222d;color:#fff;cursor:pointer;text-align:left;font-size:16px;transition: all 0.2s}
 .mode.active{border-color:#ff425b;background:#39212c}
 .mode small{display:block;color:#bcbac3;margin-top:7px}
-#go{width:100%;background:#ff3652;color:white;border:0;border-radius:12px;padding:17px;font-size:17px;font-weight:bold;cursor:pointer;margin-top:26px}
+#go{width:100%;background:#ff3652;color:white;border:0;border-radius:12px;padding:17px;font-size:17px;font-weight:bold;cursor:pointer;margin-top:26px;transition: opacity 0.2s}
+#go:hover{opacity:0.9}
 #go:disabled{opacity:.5;cursor:wait}
 #status{font-size:13px;margin-top:18px;min-height:20px;overflow-wrap:anywhere}
 .logo{color:#ff425b;font-weight:bold;letter-spacing:2px;margin-bottom:26px}
@@ -106,7 +183,6 @@ input:focus,select:focus{outline:2px solid #ff425b}
     currentLang = lang;
     document.documentElement.lang = lang;
 
-    // Minden data-i18n elem szövegének frissítése
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
       if (translations[lang][key]) {
@@ -114,7 +190,6 @@ input:focus,select:focus{outline:2px solid #ff425b}
       }
     });
 
-    // Gomb szövegének beállítása mód alapján
     updateGoButtonText();
     langToggleBtn.textContent = translations[lang]['toggle_btn'];
   }
@@ -152,35 +227,4 @@ input:focus,select:focus{outline:2px solid #ff425b}
     go.disabled = true;
     statusEl.textContent = translations[currentLang]['msg_downloading'];
     try {
-      let res = await fetch('/download', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({url, kind, quality: q.value})
-      });
-      if (!res.ok) {
-        let data = await res.json();
-        throw Error(data.error || 'Ismeretlen hiba');
-      }
-      let blob = await res.blob();
-      let cd = res.headers.get('Content-Disposition') || '';
-      let match = cd.match(/filename\*=UTF-8''([^;]+)/i);
-      let basic = cd.match(/filename="?([^";]+)"?/i);
-      let name = match ? decodeURIComponent(match[1]) : basic ? basic[1] : 'download.' + (kind === 'audio' ? 'mp3' : 'mp4');
-      let link = document.createElement('a');
-      let objectUrl = URL.createObjectURL(blob);
-      link.href = objectUrl;
-      link.download = name;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(objectUrl), 30000);
-      statusEl.textContent = translations[currentLang]['msg_success'];
-    } catch (e) {
-      statusEl.textContent = '❌ ' + e.message;
-    } finally {
-      go.disabled = false;
-    }
-  };
-</script>
-</body>
-</html>
+      let res =...
