@@ -34,8 +34,7 @@ def download():
             'max_filesize': 500 * 1024 * 1024,
             'quiet': True,
             'no_warnings': True,
-            'restrictfilenames': True,
-            # Böngésző szimuláció a tiltások ellen:
+            # 'restrictfilenames': True,  <-- Ezt kitöröltem, így megmarad az eredeti cím
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
