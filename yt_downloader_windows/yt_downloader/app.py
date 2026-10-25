@@ -16,8 +16,12 @@ def download():
     url = str(data.get('url', '')).strip()
     kind = data.get('kind', 'video')
     quality = str(data.get('quality', '720'))
-    if not re.match(r'^https://(www\.|m\.|music\.)?youtube\.com/(watch\?|shorts/|live/)|^https://youtu\.be/', url, re.I):
-        return jsonify(error='Adj meg egy érvényes YouTube-linket.'), 400
+    # Engedélyezzük a YouTube és a TikTok linkeket is
+is_yt = re.match(r'https://(www\.|m\.)?youtube\.com/(watch\?v=|shorts/|live/)|^https://youtu\.be/', url, re.I)
+is_tk = re.match(r'https://(www\.|m\.|vm\.|vt\.)?tiktok\.com/', url, re.I)
+
+if not is_yt and not is_tk:
+    return jsonify(error='Adj meg egy érvényes YouTube vagy TikTok linket!'), 400
     if kind not in ('audio', 'video') or quality not in ('360','480','720','1080'):
         return jsonify(error='Hibás formátum vagy minőség.'), 400
     folder = Path(tempfile.mkdtemp(prefix='yt_local_'))
