@@ -17,7 +17,6 @@ def download():
     kind = data.get('kind', 'video')
     quality = str(data.get('quality', '720'))
     
-    # Helyes behúzás: ez most már pontosan a download() függvényen BELÜL van
     is_yt = re.match(r'https://(www\.|m\.)?youtube\.com/(watch\?v=|shorts/|live/)|^https://youtu\.be/', url, re.I)
     is_tk = re.match(r'https://(www\.|m\.|vm\.|vt\.)?tiktok\.com/', url, re.I)
 
@@ -36,7 +35,14 @@ def download():
             'quiet': True,
             'no_warnings': True,
             'restrictfilenames': True,
+            # Böngésző szimuláció a tiltások ellen:
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+            },
         }
+        
         if kind == 'audio':
             opts.update(format='bestaudio/best', postprocessors=[{'key':'FFmpegExtractAudio','preferredcodec':'mp3','preferredquality':'192'}])
         else:
