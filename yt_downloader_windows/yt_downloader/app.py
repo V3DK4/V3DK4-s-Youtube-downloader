@@ -16,14 +16,17 @@ def download():
     url = str(data.get('url', '')).strip()
     kind = data.get('kind', 'video')
     quality = str(data.get('quality', '720'))
-    # Engedélyezzük a YouTube és a TikTok linkeket is
-is_yt = re.match(r'https://(www\.|m\.)?youtube\.com/(watch\?v=|shorts/|live/)|^https://youtu\.be/', url, re.I)
-is_tk = re.match(r'https://(www\.|m\.|vm\.|vt\.)?tiktok\.com/', url, re.I)
+    
+    # Helyes behúzás: ez most már pontosan a download() függvényen BELÜL van
+    is_yt = re.match(r'https://(www\.|m\.)?youtube\.com/(watch\?v=|shorts/|live/)|^https://youtu\.be/', url, re.I)
+    is_tk = re.match(r'https://(www\.|m\.|vm\.|vt\.)?tiktok\.com/', url, re.I)
 
-if not is_yt and not is_tk:
-    return jsonify(error='Adj meg egy érvényes YouTube vagy TikTok linket!'), 400
+    if not is_yt and not is_tk:
+        return jsonify(error='Adj meg egy érvényes YouTube vagy TikTok linket!'), 400
+
     if kind not in ('audio', 'video') or quality not in ('360','480','720','1080'):
         return jsonify(error='Hibás formátum vagy minőség.'), 400
+        
     folder = Path(tempfile.mkdtemp(prefix='yt_local_'))
     try:
         opts = {
@@ -38,17 +41,23 @@ if not is_yt and not is_tk:
             opts.update(format='bestaudio/best', postprocessors=[{'key':'FFmpegExtractAudio','preferredcodec':'mp3','preferredquality':'192'}])
         else:
             opts.update(format=f'bestvideo[height<={quality}]+bestaudio/best[height<={quality}]/best', merge_output_format='mp4', postprocessors=[{'key':'FFmpegVideoConvertor','preferedformat':'mp4'}])
+        
         with YoutubeDL(opts) as ydl:
             ydl.download([url])
+            
         files = [p for p in folder.iterdir() if p.is_file() and p.suffix.lower() == ('.mp3' if kind == 'audio' else '.mp4')]
         if not files:
             raise RuntimeError('Nem sikerült elkészíteni a kért fájlt.')
+            
         file = max(files, key=lambda p: p.stat().st_size)
+        
         @after_this_request
         def cleanup(response):
             response.call_on_close(lambda: shutil.rmtree(folder, ignore_errors=True))
             return response
+            
         return send_file(file, as_attachment=True, download_name=file.name)
+        
     except Exception as e:
         shutil.rmtree(folder, ignore_errors=True)
         return jsonify(error=f'Letöltési hiba: {str(e)[:300]}'), 400
