@@ -1,0 +1,17 @@
+YT DOWNLOADER - WINDOWS
+
+1. Telepitsd a Python 3-at a https://www.python.org/downloads/ oldalrol.
+   Telepitesnel pip legyen elerheto. Ha van 'Add Python to PATH', jelold be.
+2. Telepitsd az FFmpeg-et (ffmpeg.exe es ffprobe.exe is kell), es add hozza a PATH-hoz.
+   Hivatalos oldal: https://ffmpeg.org/download.html
+   Windows alatt terminalban (ha winget elerheto): winget install Gyan.FFmpeg
+   Ezutan indits uj terminalt / jelentkezz ki-be, hogy a PATH frissuljon.
+3. Csomagold ki ezt a ZIP-et egy mappaba.
+4. Kattints duplan a START.bat fajlra. Az elso inditas telepiti a Python csomagokat.
+5. Bongeszoben nyisd meg: http://127.0.0.1:5000
+6. Illeszd be a YouTube-linket, valaszd az MP4 vagy MP3 modot, majd Download.
+
+Ha nem indul: CMD-ben ellenorizd: python --version, ffmpeg -version, ffprobe -version
+Ha a YouTube valtoztat a mukodesen, frissites: python -m pip install -U yt-dlp
+Csak olyan tartalmat tolts le, amelyhez jogod vagy engedelyed van.
+A weboldal csak a sajat gepeden (127.0.0.1) fut, nem nyilvanos hosting.
