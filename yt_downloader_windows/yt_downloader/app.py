@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, send_file, after_this_request
 from yt_dlp import YoutubeDL
 from pathlib import Path
-import tempfile, shutil, re
+import tempfile, shutil, re, os
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
@@ -27,15 +27,24 @@ def download():
         return jsonify(error='Hibás formátum vagy minőség.'), 400
         
     folder = Path(tempfile.mkdtemp(prefix='yt_local_'))
+    cookie_file_path = None
+    
     try:
+        # Ha létezik a környezeti változó (Renderen), írjuk ki ideiglenes fájlba
+        cookie_env = os.environ.get('COOKIE_CONTENT')
+        if cookie_env:
+            cookie_temp = folder / 'render_cookies.txt'
+            cookie_temp.write_text(cookie_env, encoding='utf-8')
+            cookie_file_path = str(cookie_temp)
+        elif Path('cookies.txt').exists():
+            cookie_file_path = 'cookies.txt' # Lokális gépen
+
         opts = {
             'outtmpl': str(folder / '%(title).100s.%(ext)s'),
             'noplaylist': True,
             'max_filesize': 500 * 1024 * 1024,
             'quiet': True,
             'no_warnings': True,
-            'cookiefile': 'cookies.txt',  # <-- Itt adja át a sütiket a YouTube-nak!
-            # 'restrictfilenames': True,  <-- Ezt kitöröltem, így megmarad az eredeti cím
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -43,6 +52,9 @@ def download():
             },
         }
         
+        if cookie_file_path:
+            opts['cookiefile'] = cookie_file_path
+
         if kind == 'audio':
             opts.update(format='bestaudio/best', postprocessors=[{'key':'FFmpegExtractAudio','preferredcodec':'mp3','preferredquality':'192'}])
         else:
