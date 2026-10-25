@@ -1,5 +1,186 @@
-<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>YT Downloader</title><style>
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#28202b,#0c0c12 65%);font-family:Arial,sans-serif;color:#fff;min-height:100vh;display:grid;place-items:center;padding:20px}.panel{width:min(100%,540px);background:#171720;border:1px solid #33313b;padding:32px;border-radius:22px;box-shadow:0 20px 60px #0007}h1{margin:0 0 8px;font-size:29px}p{color:#aaaab5;line-height:1.5}label{display:block;font-size:14px;margin:25px 0 10px;font-weight:bold}input,select{width:100%;padding:15px;background:#22222d;color:#fff;border:1px solid #41414d;border-radius:11px;font-size:15px}input:focus,select:focus{outline:2px solid #ff425b}.modes{display:flex;gap:12px}.mode{flex:1;padding:19px 12px;border:1px solid #44404b;border-radius:12px;background:#22222d;color:#fff;cursor:pointer;text-align:left;font-size:16px}.mode.active{border-color:#ff425b;background:#39212c}.mode small{display:block;color:#bcbac3;margin-top:7px}#go{width:100%;background:#ff3652;color:white;border:0;border-radius:12px;padding:17px;font-size:17px;font-weight:bold;cursor:pointer;margin-top:26px}#go:disabled{opacity:.5;cursor:wait}#status{font-size:13px;margin-top:18px;min-height:20px;overflow-wrap:anywhere}.logo{color:#ff425b;font-weight:bold;letter-spacing:2px;margin-bottom:26px}.note{font-size:12px;margin-top:25px}
-</style></head><body><main class="panel"><div class="logo">▶ YT DOWNLOADER</div><h1>Download your media.</h1><p>Illeszd be a videó linkjét, válassz formátumot és töltsd le.</p><label for="url">YouTube URL</label><input id="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"><label>Formátum</label><div class="modes"><button class="mode active" id="video" type="button">🎬 Videó<small>MP4</small></button><button class="mode" id="audio" type="button">🎵 Csak hang<small>MP3</small></button></div><label for="quality">Minőség</label><select id="quality"><option value="1080">1080p</option><option value="720" selected>720p</option><option value="480">480p</option><option value="360">360p</option></select><button id="go">↓ Download Video</button><div id="status" role="status"></div><p class="note">Csak saját vagy engedéllyel letölthető tartalmakhoz. A minőség a videó elérhető formátumaitól függ.</p></main><script>
-let kind='video';const v=document.querySelector('#video'),a=document.querySelector('#audio'),q=document.querySelector('#quality'),go=document.querySelector('#go'),status=document.querySelector('#status');function mode(m){kind=m;v.classList.toggle('active',m==='video');a.classList.toggle('active',m==='audio');q.disabled=m==='audio';go.textContent=m==='audio'?'↓ Download MP3':'↓ Download Video'}v.onclick=()=>mode('video');a.onclick=()=>mode('audio');go.onclick=async()=>{let url=document.querySelector('#url').value.trim();if(!url){status.textContent='⚠️ Illeszd be a linket!';return}go.disabled=true;status.textContent='⏳ Letöltés és feldolgozás folyamatban... Ez eltarthat néhány percig.';try{let res=await fetch('/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,kind,quality:q.value})});if(!res.ok){let data=await res.json();throw Error(data.error||'Ismeretlen hiba')}let blob=await res.blob();let cd=res.headers.get('Content-Disposition')||'';let match=cd.match(/filename\*=UTF-8''([^;]+)/i);let basic=cd.match(/filename="?([^";]+)"?/i);let name=match?decodeURIComponent(match[1]):basic?basic[1]:'download.'+(kind==='audio'?'mp3':'mp4');let link=document.createElement('a');let objectUrl=URL.createObjectURL(blob);link.href=objectUrl;link.download=name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),30000);status.textContent='✅ Elkészült! A böngésző elindította a fájl mentését.'}catch(e){status.textContent='❌ '+e.message}finally{go.disabled=false}};
-</script></body></html>
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YT Downloader</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top,#28202b,#0c0c12 65%);font-family:Arial,sans-serif;color:#fff;min-height:100vh;display:grid;place-items:center;padding:20px}
+.panel{width:min(100%,540px);background:#171720;border:1px solid #33313b;padding:32px;border-radius:22px;box-shadow:0 20px 60px #0007;position:relative}
+/* Nyelvváltó gomb stílusa a panel jobb felső sarkában */
+.lang-btn{position:absolute;top:20px;right:20px;background:#22222d;color:#fff;border:1px solid #41414d;padding:6px 12px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:bold}
+.lang-btn:hover{border-color:#ff425b}
+h1{margin:0 0 8px;font-size:29px}
+p{color:#aaaab5;line-height:1.5}
+label{display:block;font-size:14px;margin:25px 0 10px;font-weight:bold}
+input,select{width:100%;padding:15px;background:#22222d;color:#fff;border:1px solid #41414d;border-radius:11px;font-size:15px}
+input:focus,select:focus{outline:2px solid #ff425b}
+.modes{display:flex;gap:12px}
+.mode{flex:1;padding:19px 12px;border:1px solid #44404b;border-radius:12px;background:#22222d;color:#fff;cursor:pointer;text-align:left;font-size:16px}
+.mode.active{border-color:#ff425b;background:#39212c}
+.mode small{display:block;color:#bcbac3;margin-top:7px}
+#go{width:100%;background:#ff3652;color:white;border:0;border-radius:12px;padding:17px;font-size:17px;font-weight:bold;cursor:pointer;margin-top:26px}
+#go:disabled{opacity:.5;cursor:wait}
+#status{font-size:13px;margin-top:18px;min-height:20px;overflow-wrap:anywhere}
+.logo{color:#ff425b;font-weight:bold;letter-spacing:2px;margin-bottom:26px}
+.note{font-size:12px;margin-top:25px}
+</style>
+</head>
+<body>
+<main class="panel">
+  <!-- Nyelvváltó gomb -->
+  <button id="lang-toggle" class="lang-btn" type="button">English</button>
+
+  <div class="logo">▶ YT DOWNLOADER</div>
+  <h1 data-i18n="main_title">Download your media.</h1>
+  <p data-i18n="description">Illeszd be a videó linkjét, válassz formátumot és töltsd le.</p>
+  
+  <label for="url" data-i18n="url_label">YouTube URL</label>
+  <input id="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+  
+  <label data-i18n="format_label">Formátum</label>
+  <div class="modes">
+    <button class="mode active" id="video" type="button">🎬 Videó<small>MP4</small></button>
+    <button class="mode" id="audio" type="button"><span data-i18n="audio_title">🎵 Csak hang</span><small>MP3</small></button>
+  </div>
+  
+  <label for="quality" data-i18n="quality_label">Minőség</label>
+  <select id="quality">
+    <option value="1080">1080p</option>
+    <option value="720" selected>720p</option>
+    <option value="480">480p</option>
+    <option value="360">360p</option>
+  </select>
+  
+  <button id="go" data-i18n="go_btn_video">↓ Download Video</button>
+  <div id="status" role="status"></div>
+  <p class="note" data-i18n="note_text">Csak saját vagy engedéllyel letölthető tartalmakhoz. A minőség a videó elérhető formátumaitól függ.</p>
+</main>
+
+<script>
+  // Fordítási szótár
+  const translations = {
+    hu: {
+      main_title: "Download your media.",
+      description: "Illeszd be a videó linkjét, válassz formátumot és töltsd le.",
+      url_label: "YouTube URL",
+      format_label: "Formátum",
+      audio_title: "🎵 Csak hang",
+      quality_label: "Minőség",
+      go_btn_video: "↓ Download Video",
+      go_btn_audio: "↓ Download MP3",
+      note_text: "Csak saját vagy engedéllyel letölthető tartalmakhoz. A minőség a videó elérhető formátumaitól függ.",
+      msg_link_missing: "⚠️ Illeszd be a linket!",
+      msg_downloading: "⏳ Letöltés és feldolgozás folyamatban... Ez eltarthat néhány percig.",
+      msg_success: "✅ Elkészült! A böngésző elindította a fájl mentését.",
+      toggle_btn: "English"
+    },
+    en: {
+      main_title: "Download your media.",
+      description: "Paste the video link, choose a format and download.",
+      url_label: "YouTube URL",
+      format_label: "Format",
+      audio_title: "🎵 Audio only",
+      quality_label: "Quality",
+      go_btn_video: "↓ Download Video",
+      go_btn_audio: "↓ Download MP3",
+      note_text: "For personal or authorized content only. Quality depends on available video formats.",
+      msg_link_missing: "⚠️ Please paste the link!",
+      msg_downloading: "⏳ Downloading and processing... This may take a few minutes.",
+      msg_success: "✅ Done! Browser started downloading the file.",
+      toggle_btn: "Magyar"
+    }
+  };
+
+  let currentLang = 'hu';
+  const langToggleBtn = document.querySelector('#lang-toggle');
+  let kind = 'video';
+  const v = document.querySelector('#video');
+  const a = document.querySelector('#audio');
+  const q = document.querySelector('#quality');
+  const go = document.querySelector('#go');
+  const statusEl = document.querySelector('#status');
+
+  function setLanguage(lang) {
+    currentLang = lang;
+    document.documentElement.lang = lang;
+
+    // Minden data-i18n elem szövegének frissítése
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (translations[lang][key]) {
+        el.textContent = translations[lang][key];
+      }
+    });
+
+    // Gomb szövegének beállítása mód alapján
+    updateGoButtonText();
+    langToggleBtn.textContent = translations[lang]['toggle_btn'];
+  }
+
+  function updateGoButtonText() {
+    if (kind === 'audio') {
+      go.textContent = translations[currentLang]['go_btn_audio'];
+    } else {
+      go.textContent = translations[currentLang]['go_btn_video'];
+    }
+  }
+
+  function mode(m) {
+    kind = m;
+    v.classList.toggle('active', m === 'video');
+    a.classList.toggle('active', m === 'audio');
+    q.disabled = m === 'audio';
+    updateGoButtonText();
+  }
+
+  v.onclick = () => mode('video');
+  a.onclick = () => mode('audio');
+
+  langToggleBtn.onclick = () => {
+    const newLang = currentLang === 'hu' ? 'en' : 'hu';
+    setLanguage(newLang);
+  };
+
+  go.onclick = async () => {
+    let url = document.querySelector('#url').value.trim();
+    if (!url) {
+      statusEl.textContent = translations[currentLang]['msg_link_missing'];
+      return;
+    }
+    go.disabled = true;
+    statusEl.textContent = translations[currentLang]['msg_downloading'];
+    try {
+      let res = await fetch('/download', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({url, kind, quality: q.value})
+      });
+      if (!res.ok) {
+        let data = await res.json();
+        throw Error(data.error || 'Ismeretlen hiba');
+      }
+      let blob = await res.blob();
+      let cd = res.headers.get('Content-Disposition') || '';
+      let match = cd.match(/filename\*=UTF-8''([^;]+)/i);
+      let basic = cd.match(/filename="?([^";]+)"?/i);
+      let name = match ? decodeURIComponent(match[1]) : basic ? basic[1] : 'download.' + (kind === 'audio' ? 'mp3' : 'mp4');
+      let link = document.createElement('a');
+      let objectUrl = URL.createObjectURL(blob);
+      link.href = objectUrl;
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 30000);
+      statusEl.textContent = translations[currentLang]['msg_success'];
+    } catch (e) {
+      statusEl.textContent = '❌ ' + e.message;
+    } finally {
+      go.disabled = false;
+    }
+  };
+</script>
+</body>
+</html>
