@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile, shutil, re
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 @app.get('/')
 def home():
@@ -34,6 +34,7 @@ def download():
             'max_filesize': 500 * 1024 * 1024,
             'quiet': True,
             'no_warnings': True,
+            'cookiefile': 'cookies.txt',  # <-- Itt adja át a sütiket a YouTube-nak!
             # 'restrictfilenames': True,  <-- Ezt kitöröltem, így megmarad az eredeti cím
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
