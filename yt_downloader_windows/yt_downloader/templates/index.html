@@ -3,11 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>YT Downloader</title>
+<title>YT & TikTok Downloader</title>
 <style>
 *{box-sizing:border-box}
 
-/* Alap beállítások */
 body {
   margin: 0;
   background-color: #09090e;
@@ -21,7 +20,7 @@ body {
   position: relative;
 }
 
-/* Teljes képernyős animált háttér konténer */
+/* Animált háttér */
 .bg-animation {
   position: fixed;
   top: 0;
@@ -33,7 +32,6 @@ body {
   background: linear-gradient(135deg, #0c0c12, #171026, #09090e);
 }
 
-/* Lebegő, pulzáló színfoltok */
 .blob {
   position: absolute;
   border-radius: 50%;
@@ -42,53 +40,20 @@ body {
   animation: moveBlob 16s infinite alternate ease-in-out;
 }
 
-.blob-1 {
-  width: 450px;
-  height: 450px;
-  background: #ff3652;
-  top: -10%;
-  left: -10%;
-  animation-duration: 18s;
-}
+.blob-1 { width: 450px; height: 450px; background: #ff3652; top: -10%; left: -10%; animation-duration: 18s; }
+.blob-2 { width: 550px; height: 550px; background: #6c5ce7; bottom: -15%; right: -10%; animation-duration: 22s; animation-delay: -5s; }
+.blob-3 { width: 350px; height: 350px; background: #00cec9; top: 35%; left: 50%; animation-duration: 14s; animation-delay: -3s; opacity: 0.35; }
 
-.blob-2 {
-  width: 550px;
-  height: 550px;
-  background: #6c5ce7;
-  bottom: -15%;
-  right: -10%;
-  animation-duration: 22s;
-  animation-delay: -5s;
-}
-
-.blob-3 {
-  width: 350px;
-  height: 350px;
-  background: #00cec9;
-  top: 35%;
-  left: 50%;
-  animation-duration: 14s;
-  animation-delay: -3s;
-  opacity: 0.35;
-}
-
-/* Animáció a foltok mozgásához */
 @keyframes moveBlob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  50% {
-    transform: translate(100px, 70px) scale(1.2);
-  }
-  100% {
-    transform: translate(-70px, 110px) scale(0.85);
-  }
+  0% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(100px, 70px) scale(1.2); }
+  100% { transform: translate(-70px, 110px) scale(0.85); }
 }
 
 .panel{
   width: min(100%, 540px);
   background: rgba(23, 23, 32, 0.8);
-  backdrop-filter: blur(16px); /* Elegáns üveghatás */
+  backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 32px;
   border-radius: 22px;
@@ -97,7 +62,6 @@ body {
   z-index: 1;
 }
 
-/* Nyelvváltó gomb stílusa */
 .lang-btn{
   position: absolute;
   top: 20px;
@@ -112,20 +76,19 @@ body {
   font-weight: bold;
   transition: all 0.2s;
 }
-.lang-btn:hover{
-  border-color: #ff425b;
-  background: #2a2a38;
-}
+.lang-btn:hover{ border-color: #ff425b; background: #2a2a38; }
 
 h1{margin:0 0 8px;font-size:29px}
 p{color:#aaaab5;line-height:1.5}
-label{display:block;font-size:14px;margin:25px 0 10px;font-weight:bold}
+label{display:block;font-size:14px;margin:20px 0 10px;font-weight:bold}
 input,select{width:100%;padding:15px;background:#22222d;color:#fff;border:1px solid #41414d;border-radius:11px;font-size:15px}
 input:focus,select:focus{outline:2px solid #ff425b}
+
 .modes{display:flex;gap:12px}
-.mode{flex:1;padding:19px 12px;border:1px solid #44404b;border-radius:12px;background:#22222d;color:#fff;cursor:pointer;text-align:left;font-size:16px;transition: all 0.2s}
+.mode{flex:1;padding:15px 12px;border:1px solid #44404b;border-radius:12px;background:#22222d;color:#fff;cursor:pointer;text-align:center;font-size:15px;transition: all 0.2s; font-weight: bold;}
 .mode.active{border-color:#ff425b;background:#39212c}
-.mode small{display:block;color:#bcbac3;margin-top:7px}
+.mode small{display:block;color:#bcbac3;margin-top:5px; font-weight: normal;}
+
 #go{width:100%;background:#ff3652;color:white;border:0;border-radius:12px;padding:17px;font-size:17px;font-weight:bold;cursor:pointer;margin-top:26px;transition: opacity 0.2s}
 #go:hover{opacity:0.9}
 #go:disabled{opacity:.5;cursor:wait}
@@ -136,7 +99,6 @@ input:focus,select:focus{outline:2px solid #ff425b}
 </head>
 <body>
 
-<!-- Animált háttér elemek -->
 <div class="bg-animation">
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
@@ -144,14 +106,20 @@ input:focus,select:focus{outline:2px solid #ff425b}
 </div>
 
 <main class="panel">
-  <!-- Nyelvváltó gomb -->
   <button id="lang-toggle" class="lang-btn" type="button">English</button>
 
-  <div class="logo">▶ YT DOWNLOADER</div>
+  <div class="logo">▶ MEDIA DOWNLOADER</div>
   <h1 data-i18n="main_title">Download your media.</h1>
-  <p data-i18n="description">Illeszd be a videó linkjét, válassz formátumot és töltsd le.</p>
+  <p data-i18n="description">Válaszd ki a platformot, illeszd be a linket és töltsd le.</p>
   
-  <label for="url" data-i18n="url_label">YouTube URL</label>
+  <!-- Platform választó -->
+  <label data-i18n="platform_label">Platform</label>
+  <div class="modes">
+    <button class="mode active" id="plat-yt" type="button">🔴 YouTube</button>
+    <button class="mode" id="plat-tiktok" type="button">🖤 TikTok</button>
+  </div>
+
+  <label for="url" id="url-label">YouTube URL</label>
   <input id="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
   
   <label data-i18n="format_label">Formátum</label>
@@ -160,13 +128,15 @@ input:focus,select:focus{outline:2px solid #ff425b}
     <button class="mode" id="audio" type="button"><span data-i18n="audio_title">🎵 Csak hang</span><small>MP3</small></button>
   </div>
   
-  <label for="quality" data-i18n="quality_label">Minőség</label>
-  <select id="quality">
-    <option value="1080">1080p</option>
-    <option value="720" selected>720p</option>
-    <option value="480">480p</option>
-    <option value="360">360p</option>
-  </select>
+  <label for="quality" id="quality-container">
+    <span data-i18n="quality_label">Minőség</span>
+    <select id="quality" style="margin-top: 10px;">
+      <option value="1080">1080p</option>
+      <option value="720" selected>720p</option>
+      <option value="480">480p</option>
+      <option value="360">360p</option>
+    </select>
+  </label>
   
   <button id="go" data-i18n="go_btn_video">↓ Download Video</button>
   <div id="status" role="status"></div>
@@ -174,12 +144,11 @@ input:focus,select:focus{outline:2px solid #ff425b}
 </main>
 
 <script>
-  // Fordítási szótár
   const translations = {
     hu: {
       main_title: "Download your media.",
-      description: "Illeszd be a videó linkjét, válassz formátumot és töltsd le.",
-      url_label: "YouTube URL",
+      description: "Válaszd ki a platformot, illeszd be a linket és töltsd le.",
+      platform_label: "Platform",
       format_label: "Formátum",
       audio_title: "🎵 Csak hang",
       quality_label: "Minőség",
@@ -193,8 +162,8 @@ input:focus,select:focus{outline:2px solid #ff425b}
     },
     en: {
       main_title: "Download your media.",
-      description: "Paste the video link, choose a format and download.",
-      url_label: "YouTube URL",
+      description: "Choose the platform, paste the link and download.",
+      platform_label: "Platform",
       format_label: "Format",
       audio_title: "🎵 Audio only",
       quality_label: "Quality",
@@ -209,11 +178,18 @@ input:focus,select:focus{outline:2px solid #ff425b}
   };
 
   let currentLang = 'hu';
-  const langToggleBtn = document.querySelector('#lang-toggle');
+  let platform = 'youtube'; // alapértelmezett
   let kind = 'video';
+
+  const langToggleBtn = document.querySelector('#lang-toggle');
+  const platYt = document.querySelector('#plat-yt');
+  const platTiktok = document.querySelector('#plat-tiktok');
+  const urlInput = document.querySelector('#url');
+  const urlLabel = document.querySelector('#url-label');
   const v = document.querySelector('#video');
   const a = document.querySelector('#audio');
   const q = document.querySelector('#quality');
+  const qualityContainer = document.querySelector('#quality-container');
   const go = document.querySelector('#go');
   const statusEl = document.querySelector('#status');
 
@@ -240,6 +216,23 @@ input:focus,select:focus{outline:2px solid #ff425b}
     }
   }
 
+  function setPlatform(p) {
+    platform = p;
+    platYt.classList.toggle('active', p === 'youtube');
+    platTiktok.classList.toggle('active', p === 'tiktok');
+
+    if (p === 'youtube') {
+      urlLabel.textContent = 'YouTube URL';
+      urlInput.placeholder = 'https://www.youtube.com/watch?v=...';
+      qualityContainer.style.display = 'block';
+    } else {
+      urlLabel.textContent = 'TikTok URL';
+      urlInput.placeholder = 'https://www.tiktok.com/@user/video/...';
+      // A TikTok általában egyben adja a videót hanggal, vagy letilthatja a minőségválasztót, de hagyhatjuk így is
+      qualityContainer.style.display = 'block'; 
+    }
+  }
+
   function mode(m) {
     kind = m;
     v.classList.toggle('active', m === 'video');
@@ -248,6 +241,8 @@ input:focus,select:focus{outline:2px solid #ff425b}
     updateGoButtonText();
   }
 
+  platYt.onclick = () => setPlatform('youtube');
+  platTiktok.onclick = () => setPlatform('tiktok');
   v.onclick = () => mode('video');
   a.onclick = () => mode('audio');
 
@@ -257,7 +252,7 @@ input:focus,select:focus{outline:2px solid #ff425b}
   };
 
   go.onclick = async () => {
-    let url = document.querySelector('#url').value.trim();
+    let url = urlInput.value.trim();
     if (!url) {
       statusEl.textContent = translations[currentLang]['msg_link_missing'];
       return;
@@ -268,7 +263,7 @@ input:focus,select:focus{outline:2px solid #ff425b}
       let res = await fetch('/download', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({url, kind, quality: q.value})
+        body: JSON.stringify({url, kind, quality: q.value, platform})
       });
       if (!res.ok) {
         let data = await res.json();
